@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="hr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#1f3a5f">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Skladište</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header class="topbar">
+  <h1 id="view-title">Artikli</h1>
+  <div class="topbar-actions" id="topbar-actions"></div>
+</header>
+
+<main id="main">
+
+  <!-- ARTIKLI -->
+  <section class="view" id="view-artikli">
+    <div class="searchrow">
+      <input type="search" id="art-search" placeholder="Traži šifru ili naziv…" autocomplete="off">
+      <button class="btn icon" id="art-scan" title="Skeniraj šifru kamerom">📷</button>
+    </div>
+    <div class="stats" id="art-stats"></div>
+    <ul class="list" id="art-list"></ul>
+    <p class="empty" id="art-empty" hidden>Nema artikala. Dodaj prvi artikl gumbom <b>+</b>.</p>
+    <button class="fab" id="art-add" title="Novi artikl">+</button>
+  </section>
+
+  <!-- ULAZ / IZLAZ -->
+  <section class="view" id="view-dokument" hidden>
+    <div class="segment" id="doc-tip">
+      <button data-tip="ulaz" class="active">⬇ Ulaz</button>
+      <button data-tip="izlaz">⬆ Izlaz</button>
+    </div>
+
+    <div class="card">
+      <div class="grid2">
+        <label>Datum <input type="date" id="doc-datum"></label>
+        <label>Vrijeme <input type="time" id="doc-vrijeme"></label>
+      </div>
+      <label>Lokacija <input type="text" id="doc-lokacija" placeholder="npr. Skladište 1 / Gradilište…" list="lokacije-list"></label>
+      <datalist id="lokacije-list"></datalist>
+      <label id="doc-osoba-label">Osoba <input type="text" id="doc-osoba" placeholder="Tko predaje / preuzima"></label>
+      <label>Napomena <textarea id="doc-napomena" rows="2" placeholder="Napomena uz dokument…"></textarea></label>
+    </div>
+
+    <div class="card">
+      <h2>Stavke</h2>
+      <div class="addrow">
+        <div class="autocomplete">
+          <input type="text" id="stavka-trazi" placeholder="Šifra ili naziv artikla…" autocomplete="off">
+          <ul class="suggest" id="stavka-suggest" hidden></ul>
+        </div>
+        <input type="number" id="stavka-kol" placeholder="Kol." min="0" step="any" inputmode="decimal">
+        <button class="btn primary" id="stavka-dodaj">Dodaj</button>
+      </div>
+      <div class="row gap">
+        <button class="btn" id="stavka-scan">📷 Skeniraj šifru</button>
+        <button class="btn" id="stavka-ocr">🔎 OCR popis</button>
+      </div>
+      <table class="items" id="doc-items">
+        <thead><tr><th>#</th><th>Šifra</th><th>Naziv</th><th class="num">Kol.</th><th></th></tr></thead>
+        <tbody></tbody>
+      </table>
+      <p class="empty small" id="doc-items-empty">Još nema stavki.</p>
+    </div>
+
+    <div class="actions">
+      <button class="btn" id="doc-reset">Očisti</button>
+      <button class="btn primary big" id="doc-save">💾 Spremi i ispiši</button>
+    </div>
+  </section>
+
+  <!-- DOKUMENTI -->
+  <section class="view" id="view-dokumenti" hidden>
+    <div class="segment small" id="dok-filter">
+      <button data-f="" class="active">Svi</button>
+      <button data-f="ulaz">Ulaz</button>
+      <button data-f="izlaz">Izlaz</button>
+    </div>
+    <ul class="list" id="dok-list"></ul>
+    <p class="empty" id="dok-empty" hidden>Nema spremljenih dokumenata.</p>
+  </section>
+
+  <!-- POSTAVKE -->
+  <section class="view" id="view-postavke" hidden>
+    <div class="card">
+      <h2>Zaglavlje dokumenta</h2>
+      <label>Naziv tvrtke / skladišta <input type="text" id="set-tvrtka" placeholder="npr. Branislav Šaulić, Skladište"></label>
+      <label>Adresa / dodatni redak <input type="text" id="set-adresa" placeholder="Ulica, mjesto"></label>
+      <label>Zadana lokacija <input type="text" id="set-lokacija" placeholder="npr. Skladište 1"></label>
+      <label>Odgovorna osoba (potpisuje) <input type="text" id="set-osoba" placeholder="Ime i prezime"></label>
+      <button class="btn primary" id="set-save">Spremi postavke</button>
+    </div>
+
+    <div class="card">
+      <h2>Podaci</h2>
+      <p class="hint">Podaci su spremljeni samo na ovom uređaju. Redovito napravi sigurnosnu kopiju.</p>
+      <div class="row gap wrap">
+        <button class="btn" id="exp-json">⬇ Sigurnosna kopija (JSON)</button>
+        <button class="btn" id="exp-csv">⬇ Stanje (CSV)</button>
+        <button class="btn" id="exp-promet">⬇ Promet (CSV)</button>
+      </div>
+      <label class="btn filebtn">⬆ Učitaj sigurnosnu kopiju <input type="file" id="imp-json" accept="application/json,.json" hidden></label>
+      <button class="btn danger" id="clear-all">Obriši sve podatke</button>
+    </div>
+
+    <div class="card">
+      <h2>OCR jezik</h2>
+      <p class="hint">OCR radi lokalno u pregledniku (Tesseract). Jezični paketi se preuzimaju jednom i spremaju.</p>
+      <select id="set-ocr-lang">
+        <option value="hrv+eng">Hrvatski + engleski</option>
+        <option value="srp_latn+eng">Srpski (latinica) + engleski</option>
+        <option value="eng">Samo engleski (brže)</option>
+      </select>
+    </div>
+    <p class="version">Skladište v1.0</p>
+  </section>
+</main>
+
+<nav class="tabbar">
+  <button data-view="artikli" class="active"><span>📦</span>Artikli</button>
+  <button data-view="dokument"><span>⇅</span>Ulaz / Izlaz</button>
+  <button data-view="dokumenti"><span>🗂</span>Dokumenti</button>
+  <button data-view="postavke"><span>⚙️</span>Postavke</button>
+</nav>
+
+<!-- Dialog: artikl -->
+<dialog id="dlg-artikl">
+  <form method="dialog" class="dlg">
+    <h2 id="dlg-artikl-title">Novi artikl</h2>
+    <div class="photo-box" id="art-photo-box">
+      <img id="art-photo-preview" alt="" hidden>
+      <div class="photo-placeholder" id="art-photo-placeholder">Nema slike</div>
+    </div>
+    <div class="row gap">
+      <label class="btn filebtn">📷 Slikaj <input type="file" id="art-photo-cam" accept="image/*" capture="environment" hidden></label>
+      <label class="btn filebtn">🖼 Galerija <input type="file" id="art-photo-file" accept="image/*" hidden></label>
+      <button type="button" class="btn" id="art-ocr">🔎 Očitaj tekst sa slike</button>
+    </div>
+    <div class="ocr-result" id="art-ocr-result" hidden>
+      <p class="hint">Dodirni redak pa odaberi gdje ga upisati:</p>
+      <ul id="art-ocr-lines"></ul>
+    </div>
+    <label>Šifra * <input type="text" id="art-sifra" required autocomplete="off"></label>
+    <label>Naziv artikla * <input type="text" id="art-naziv" required autocomplete="off"></label>
+    <div class="grid2">
+      <label>Jed. mjere <input type="text" id="art-jm" placeholder="kom" list="jm-list"></label>
+      <datalist id="jm-list"><option value="kom"><option value="m"><option value="kg"><option value="l"><option value="pak"></datalist>
+      <label>Početno stanje <input type="number" id="art-pocetno" step="any" inputmode="decimal" placeholder="0"></label>
+    </div>
+    <label>Napomena <textarea id="art-napomena" rows="2"></textarea></label>
+    <div class="actions">
+      <button type="button" class="btn danger left" id="art-delete" hidden>Obriši</button>
+      <button type="button" class="btn" id="art-cancel">Odustani</button>
+      <button type="submit" class="btn primary" id="art-save">Spremi</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- Dialog: detalj artikla / kartica -->
+<dialog id="dlg-kartica">
+  <div class="dlg">
+    <div class="kartica-head" id="kartica-head"></div>
+    <h3>Kartica artikla (promet)</h3>
+    <table class="items" id="kartica-table">
+      <thead><tr><th>Datum</th><th>Dok.</th><th>Lokacija</th><th class="num">+/−</th><th class="num">Stanje</th></tr></thead>
+      <tbody></tbody>
+    </table>
+    <div class="actions">
+      <button type="button" class="btn" id="kartica-edit">✏️ Uredi</button>
+      <button type="button" class="btn primary" id="kartica-close">Zatvori</button>
+    </div>
+  </div>
+</dialog>
+
+<!-- Dialog: OCR / skener -->
+<dialog id="dlg-scan">
+  <div class="dlg">
+    <h2 id="scan-title">Skeniraj</h2>
+    <div class="scan-area">
+      <video id="scan-video" playsinline muted hidden></video>
+      <img id="scan-preview" alt="" hidden>
+      <canvas id="scan-canvas" hidden></canvas>
+    </div>
+    <p class="hint" id="scan-status"></p>
+    <progress id="scan-progress" max="1" value="0" hidden></progress>
+    <div class="row gap wrap">
+      <label class="btn primary filebtn">📷 Slikaj <input type="file" id="scan-cam" accept="image/*" capture="environment" hidden></label>
+      <label class="btn filebtn">🖼 Galerija <input type="file" id="scan-file" accept="image/*" hidden></label>
+      <button type="button" class="btn" id="scan-live" hidden>▶ Kamera uživo (barkod)</button>
+    </div>
+    <div id="scan-results"></div>
+    <div class="actions">
+      <button type="button" class="btn" id="scan-close">Zatvori</button>
+      <button type="button" class="btn primary" id="scan-apply" hidden>Dodaj označene</button>
+    </div>
+  </div>
+</dialog>
+
+<!-- Print view -->
+<div id="print-view" class="print-view" hidden>
+  <div class="print-toolbar noprint">
+    <button class="btn" id="print-back">← Natrag</button>
+    <button class="btn primary" id="print-now">🖨 Ispiši / PDF</button>
+  </div>
+  <div class="paper" id="paper"></div>
+</div>
+
+<div id="toast" class="toast" hidden></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/5.1.1/tesseract.min.js" defer></script>
+<script src="app.js" defer></script>
+</body>
+</html>
