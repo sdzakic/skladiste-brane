@@ -1,5 +1,7 @@
 # Skladište – evidencija ulaza i izlaza dijelova
 
+**Aplikacija je objavljena na: https://sdzakic.github.io/skladiste-brane/**
+
 Jednostavna aplikacija za telefon i računalo: baza dijelova sa slikama, ulaz i izlaz
 po dokumentima, skeniranje šifre kamerom (barkod / OCR) i ispis dokumenta za potpis.
 
